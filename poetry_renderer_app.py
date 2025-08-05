@@ -27,5 +27,5 @@ except Exception as e:
 # Render button
 if st.button("Render Poem as PNG"):
     width, height = background.size
-    image = background.co
+    image = image = background.copy()
 
