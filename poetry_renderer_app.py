@@ -1,4 +1,3 @@
-
 import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
@@ -6,21 +5,21 @@ import textwrap
 # Configure the app
 st.set_page_config(page_title="Poetry Renderer", layout="centered")
 
-st.title("🖋️ Poetry Renderer - Greco-Roman Style")
+st.title("🖋️ Poetry Renderer – Greco-Roman Style")
 
 # Text input
 title = st.text_input("Poem Title", "Invocation")
 poem_text = st.text_area("Paste your poem here (use hard returns for line breaks)", height=300)
 
-# Load fonts
-FONT_PATH = "EBGaramond-Regular.ttf"  # You must place this font file in the same folder
-TITLE_FONT_PATH = "Cinzel-Regular.ttf"  # Same here
+# Load fonts from the static directory
+FONT_PATH = "static/EBGaramond-Regular.ttf"
+TITLE_FONT_PATH = "static/Cinzel-Regular.ttf"
 
 try:
     body_font = ImageFont.truetype(FONT_PATH, 36)
     title_font = ImageFont.truetype(TITLE_FONT_PATH, 48)
 except:
-    st.error("Make sure EBGaramond-Regular.ttf and Cinzel-Regular.ttf are in the same folder as this script.")
+    st.error("Make sure EBGaramond-Regular.ttf and Cinzel-Regular.ttf are in the 'static' folder.")
     st.stop()
 
 # Render button
