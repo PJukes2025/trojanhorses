@@ -1,0 +1,18 @@
+[server]
+enableStaticServing = true
+
+[[theme.fontFaces]]
+family = "EB Garamond"
+url = "static/EBGaramond-Regular.ttf"
+style = "normal"
+weight = 400
+
+[[theme.fontFaces]]
+family = "Cinzel"
+url = "static/Cinzel-Regular.ttf"
+style = "normal"
+weight = 400
+
+[theme]
+font = "EB Garamond"
+headingFont = "Cinzel"
