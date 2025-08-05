@@ -4,31 +4,30 @@ import textwrap
 import re
 import os
 
-# Page config
+# Page setup
 st.set_page_config(page_title="Poetry Renderer", layout="centered")
-st.title("🖋️ Poetry Renderer – Markdown Poetry Book")
+st.title("🖋️ Poetry Renderer – Markdown with Pagination")
 
-# User input
+# Inputs
 poem_text = st.text_area("Paste your Markdown-formatted poem here", height=400)
 
-# Paths
+# File paths
 FONT_REGULAR = "static/CormorantGaramond-Regular.ttf"
 FONT_ITALIC = "static/CormorantGaramond-Italic.ttf"
 FONT_TITLE = "static/Cinzel-Regular.ttf"
 BACKGROUND = "static/faded_paper.png"
 
-# Settings
-FONT_SIZE = 36
-LINE_HEIGHT = 52
+# Page dimensions and layout
 PAGE_WIDTH, PAGE_HEIGHT = 1200, 1800
 LEFT_MARGIN = 100
 TOP_MARGIN = 150
 BOTTOM_MARGIN = 150
+LINE_HEIGHT = 52
 
 # Load fonts and background
 try:
-    font_regular = ImageFont.truetype(FONT_REGULAR, FONT_SIZE)
-    font_italic = ImageFont.truetype(FONT_ITALIC, FONT_SIZE)
+    font_regular = ImageFont.truetype(FONT_REGULAR, 36)
+    font_italic = ImageFont.truetype(FONT_ITALIC, 36)
     font_title = ImageFont.truetype(FONT_TITLE, 60)
     font_chapter = ImageFont.truetype(FONT_TITLE, 48)
     font_subheading = ImageFont.truetype(FONT_TITLE, 40)
@@ -37,7 +36,8 @@ except Exception as e:
     st.error(f"Error loading fonts or background: {e}")
     st.stop()
 
-# Helpers
+# --- Helper Functions ---
+
 def parse_markdown_line(line):
     if line.startswith("# "):
         return ("title", line[2:].strip())
@@ -48,19 +48,23 @@ def parse_markdown_line(line):
     else:
         return ("text", line)
 
-def draw_markdown_line(draw, x, y, text, font, max_width):
+def draw_markdown_line(draw, x, y, text, max_width):
     segments = re.split(r"(_[^_]+_)", text)
     cursor = x
     for seg in segments:
         if seg.startswith("_") and seg.endswith("_"):
             seg_text = seg.strip("_")
-            w, _ = draw.textsize(seg_text, font=font_italic)
+            w = font_italic.getlength(seg_text)
             draw.text((cursor, y), seg_text, font=font_italic, fill=(0, 0, 0))
         else:
-            w, _ = draw.textsize(seg, font=font_regular)
+            w = font_regular.getlength(seg)
             draw.text((cursor, y), seg, font=font_regular, fill=(0, 0, 0))
         cursor += w
     return y + LINE_HEIGHT
+
+def draw_page_number(draw, page_number):
+    footer_font = ImageFont.truetype(FONT_REGULAR, 24)
+    draw.text((PAGE_WIDTH // 2, PAGE_HEIGHT - 80), f"Page {page_number}", font=footer_font, anchor="mm", fill=(0, 0, 0))
 
 def render_pages(lines):
     pages = []
@@ -70,7 +74,7 @@ def render_pages(lines):
     page_number = 1
 
     for idx, (line_type, content) in enumerate(lines):
-        # Calculate height needed
+        # Estimate height
         if line_type == "title":
             height_needed = 80
         elif line_type == "chapter":
@@ -78,7 +82,7 @@ def render_pages(lines):
         elif line_type == "subheading":
             height_needed = 55
         else:
-            height_needed = LINE_HEIGHT
+            height_needed = LINE_HEIGHT * max(1, len(textwrap.wrap(content, width=60))) + 10
 
         # Page break if needed
         if y + height_needed > PAGE_HEIGHT - BOTTOM_MARGIN:
@@ -89,7 +93,7 @@ def render_pages(lines):
             y = TOP_MARGIN
             page_number += 1
 
-        # Render line
+        # Draw line
         if line_type == "title":
             draw.text((PAGE_WIDTH // 2, y), content.upper(), font=font_title, anchor="mm", fill=(0, 0, 0))
             y += 80
@@ -104,18 +108,15 @@ def render_pages(lines):
         else:
             wrapped_lines = textwrap.wrap(content, width=60)
             for wrapped_line in wrapped_lines:
-                y = draw_markdown_line(draw, LEFT_MARGIN, y, wrapped_line, font_regular, PAGE_WIDTH - LEFT_MARGIN * 2)
+                y = draw_markdown_line(draw, LEFT_MARGIN, y, wrapped_line, PAGE_WIDTH - LEFT_MARGIN * 2)
             y += 10
 
     draw_page_number(draw, page_number)
     pages.append(current_image)
     return pages
 
-def draw_page_number(draw, page_number):
-    footer_font = ImageFont.truetype(FONT_REGULAR, 24)
-    draw.text((PAGE_WIDTH // 2, PAGE_HEIGHT - 80), f"Page {page_number}", font=footer_font, anchor="mm", fill=(0, 0, 0))
+# --- Streamlit UI ---
 
-# Render
 if st.button("Render Poem as PNG Pages"):
     lines = [parse_markdown_line(line) for line in poem_text.strip().splitlines()]
     pages = render_pages(lines)
