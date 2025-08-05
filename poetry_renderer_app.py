@@ -3,31 +3,27 @@ import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
 
-# Configure the app
 st.set_page_config(page_title="Poetry Renderer", layout="centered")
+st.title("🖋️ Poetry Renderer – IM Fell + Cinzel")
 
-st.title("🖋️ Poetry Renderer - Greco-Roman Style")
-
-# Text input
 title = st.text_input("Poem Title", "Invocation")
 poem_text = st.text_area("Paste your poem here (use hard returns for line breaks)", height=300)
 
-# Load fonts from the static directory
-FONT_PATH = "static/EBGaramond-Regular.ttf"
+FONT_PATH = "static/IMFellEnglish-Regular.ttf"
 TITLE_FONT_PATH = "static/Cinzel-Regular.ttf"
+BACKGROUND_PATH = "static/faded_paper.png"
 
 try:
     body_font = ImageFont.truetype(FONT_PATH, 36)
     title_font = ImageFont.truetype(TITLE_FONT_PATH, 48)
+    background = Image.open(BACKGROUND_PATH).convert("RGB")
 except:
-    st.error("Make sure EBGaramond-Regular.ttf and Cinzel-Regular.ttf are in the 'static' folder.")
+    st.error("Make sure required font files and faded_paper.png are in the static/ folder.")
     st.stop()
 
-# Render button
 if st.button("Render Poem as PNG"):
-    # Create image
-    width, height = 1200, 1800
-    image = Image.new("RGB", (width, height), color=(253, 250, 243))  # faded paper
+    width, height = background.size
+    image = background.copy()
     draw = ImageDraw.Draw(image)
 
     y = 100
@@ -42,7 +38,6 @@ if st.button("Render Poem as PNG"):
             y += 50
         y += 10
 
-    # Save and show
     output_path = "rendered_poem.png"
     image.save(output_path)
     st.image(image, caption="Rendered Poem")
